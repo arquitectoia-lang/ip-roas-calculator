@@ -12,7 +12,7 @@ Deploy en Streamlit Cloud:
 
 Autor: Juan Pablo Fernández Gutiérrez
 Área: Tecnología - SaleADS.ai
-Versión: 1.2 (basada en GUI v4.1) - Con autenticación y carga CSV mejorada
+Versión: 1.3 (basada en GUI v4.1) - Con autenticación, carga CSV mejorada y UI corregida
 """
 
 import streamlit as st
@@ -219,16 +219,27 @@ st.markdown("""
     /* Producto crítico */
     .critical-product {
         background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
-        border: 1px solid #f97316;
-        border-radius: 8px;
-        padding: 1rem;
+        border: 2px solid #f97316;
+        border-radius: 12px;
+        padding: 1.2rem;
         margin-top: 1rem;
     }
     
+    .critical-product p {
+        color: #e2e8f0 !important;
+        margin: 0.4rem 0;
+        font-size: 0.95rem;
+    }
+    
+    .critical-product strong {
+        color: #ffffff !important;
+    }
+    
     .critical-title {
-        color: #f97316;
+        color: #f97316 !important;
         font-weight: bold;
-        margin-bottom: 0.5rem;
+        font-size: 1.2rem;
+        margin-bottom: 0.8rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -478,7 +489,7 @@ def calcular_sensibilidad(tipo: str, parametros: ParametrosCliente, num_points: 
 st.markdown("""
 <div class="main-header">
     <p class="main-title">📊 Calculadora IP-ROAS</p>
-    <p class="main-subtitle">SaleADS.ai — Metodología IP-ROAS v1.2</p>
+    <p class="main-subtitle">SaleADS.ai — Metodología IP-ROAS v1.3</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -758,7 +769,7 @@ with tab5:
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #64748b; font-size: 0.8rem;">
-    📊 Calculadora IP-ROAS v1.2 | SaleADS.ai — Metodología IP-ROAS<br>
+    📊 Calculadora IP-ROAS v1.3 | SaleADS.ai — Metodología IP-ROAS<br>
     Desarrollado por Juan Pablo Fernández Gutiérrez | Área de Tecnología
 </div>
 """, unsafe_allow_html=True)
