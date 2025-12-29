@@ -541,40 +541,30 @@ with st.sidebar:
     uploaded_file = st.file_uploader(
         "Formato: nombre,precio,margen",
         type=['csv'],
-        help="CSV con columnas: nombre, precio, margen. Puede incluir encabezado o no."
+        help="CSV con encabezado: nombre,precio,margen (o margen_bruto)"
     )
     
     if uploaded_file is not None:
         try:
-            # Leer el archivo como texto primero para analizar
+            import csv
             import io
+            
+            # Leer contenido y usar csv.DictReader (igual que GUI v4.1)
             content = uploaded_file.getvalue().decode('utf-8')
-            lines = content.strip().split('\n')
+            reader = csv.DictReader(io.StringIO(content))
             
             productos_nuevos = []
-            
-            for i, line in enumerate(lines):
-                # Separar por coma
-                parts = [p.strip().strip('"').strip("'") for p in line.split(',')]
+            for row in reader:
+                # Buscar columnas con nombres alternativos (igual que GUI v4.1)
+                nombre = row.get('nombre', row.get('name', f'P{len(productos_nuevos)+1}'))
+                precio = float(row.get('precio', row.get('price', 0)))
+                margen = float(row.get('margen', row.get('margen_bruto', row.get('margin', 0))))
                 
-                if len(parts) >= 3:
-                    nombre_raw = parts[0]
-                    precio_raw = parts[1]
-                    margen_raw = parts[2]
-                    
-                    # Detectar si es fila de encabezado (primera fila con texto no numérico en precio)
-                    try:
-                        precio = float(precio_raw.replace('$', '').replace(',', ''))
-                        margen = float(margen_raw.replace('%', '').replace(',', ''))
-                        
-                        # Si margen > 1, asumir que es porcentaje (ej: 35 -> 0.35)
-                        if margen > 1:
-                            margen = margen / 100
-                        
-                        productos_nuevos.append(Producto(nombre_raw, precio, margen))
-                    except ValueError:
-                        # Es una fila de encabezado, saltar
-                        continue
+                # Si margen > 1, asumir que es porcentaje (ej: 35 -> 0.35)
+                if margen > 1:
+                    margen = margen / 100
+                
+                productos_nuevos.append(Producto(nombre, precio, margen))
             
             if productos_nuevos:
                 st.session_state.productos = productos_nuevos
