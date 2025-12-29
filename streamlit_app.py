@@ -12,7 +12,7 @@ Deploy en Streamlit Cloud:
 
 Autor: Juan Pablo Fernández Gutiérrez
 Área: Tecnología - SaleADS.ai
-Versión: 1.1 (basada en GUI v4.1) - Con autenticación
+Versión: 1.2 (basada en GUI v4.1) - Con autenticación y carga CSV mejorada
 """
 
 import streamlit as st
@@ -478,7 +478,7 @@ def calcular_sensibilidad(tipo: str, parametros: ParametrosCliente, num_points: 
 st.markdown("""
 <div class="main-header">
     <p class="main-title">📊 Calculadora IP-ROAS</p>
-    <p class="main-subtitle">SaleADS.ai — Metodología IP-ROAS v1.0</p>
+    <p class="main-subtitle">SaleADS.ai — Metodología IP-ROAS v1.2</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -541,17 +541,47 @@ with st.sidebar:
     uploaded_file = st.file_uploader(
         "Formato: nombre,precio,margen",
         type=['csv'],
-        help="Archivo CSV con columnas: nombre, precio, margen (decimal)"
+        help="CSV con columnas: nombre, precio, margen. Puede incluir encabezado o no."
     )
     
     if uploaded_file is not None:
         try:
-            df = pd.read_csv(uploaded_file, header=None, names=['nombre', 'precio', 'margen'])
-            st.session_state.productos = [
-                Producto(row['nombre'], float(row['precio']), float(row['margen']))
-                for _, row in df.iterrows()
-            ]
-            st.success(f"✅ {len(st.session_state.productos)} producto(s) cargado(s)")
+            # Leer el archivo como texto primero para analizar
+            import io
+            content = uploaded_file.getvalue().decode('utf-8')
+            lines = content.strip().split('\n')
+            
+            productos_nuevos = []
+            
+            for i, line in enumerate(lines):
+                # Separar por coma
+                parts = [p.strip().strip('"').strip("'") for p in line.split(',')]
+                
+                if len(parts) >= 3:
+                    nombre_raw = parts[0]
+                    precio_raw = parts[1]
+                    margen_raw = parts[2]
+                    
+                    # Detectar si es fila de encabezado (primera fila con texto no numérico en precio)
+                    try:
+                        precio = float(precio_raw.replace('$', '').replace(',', ''))
+                        margen = float(margen_raw.replace('%', '').replace(',', ''))
+                        
+                        # Si margen > 1, asumir que es porcentaje (ej: 35 -> 0.35)
+                        if margen > 1:
+                            margen = margen / 100
+                        
+                        productos_nuevos.append(Producto(nombre_raw, precio, margen))
+                    except ValueError:
+                        # Es una fila de encabezado, saltar
+                        continue
+            
+            if productos_nuevos:
+                st.session_state.productos = productos_nuevos
+                st.success(f"✅ {len(productos_nuevos)} producto(s) cargado(s)")
+            else:
+                st.warning("⚠️ No se encontraron productos válidos en el CSV")
+                
         except Exception as e:
             st.error(f"Error al cargar CSV: {e}")
     
@@ -738,7 +768,7 @@ with tab5:
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: #64748b; font-size: 0.8rem;">
-    📊 Calculadora IP-ROAS v1.0 | SaleADS.ai — Metodología IP-ROAS<br>
+    📊 Calculadora IP-ROAS v1.2 | SaleADS.ai — Metodología IP-ROAS<br>
     Desarrollado por Juan Pablo Fernández Gutiérrez | Área de Tecnología
 </div>
 """, unsafe_allow_html=True)
